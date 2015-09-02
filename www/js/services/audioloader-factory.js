@@ -1,18 +1,18 @@
 'use strict';
 
-angular.module('services.AudioLoader-Factory', ['services.AudioContext-Factory']);
-angular.module('services.AudioLoader-Factory').factory('AudioLoaderFactory', function ($q, WebAudioContext) {
+angular.module('services.AudioLoader-Factory', ['services.AudioContext-Factory','services.AppModelState-Service']);
+angular.module('services.AudioLoader-Factory').factory('AudioLoaderFactory', function ($q, WebAudioContext, AppModelState) {
 
 
 
 
     function AudioBufferLoader() {
-        this.context     = WebAudioContext._audioContext;
-        this.fileURL     = null,
-        this.nsFile      = null,
-        this.loadCount   = 0;
-        this.audioBufferCount =1;
-        this.errorCount = 0;
+        this.context          = WebAudioContext._audioContext;
+        this.fileURL          = null;
+        this.nsFile           = null;
+        this.loadCount        = 0;
+        this.audioBufferCount = 1;
+        this.errorCount       = 0;
 
         // I am the possible states that the buffer can be in.
         this.states = {
@@ -189,6 +189,7 @@ AudioBufferLoader.prototype = {
 
         if ('withCredentials' in xhr) {
             // XHR for Chrome/Firefox/Opera/Safari.
+            console.log("[AudioLoader-factory] --- audioBufferLoader.fileURL ="+ audioBufferLoader.fileURL)
             xhr.open('GET',audioBufferLoader.fileURL, true);
         } else if (typeof XDomainRequest != 'undefined') {
             // XDomainRequest for IE.
@@ -210,14 +211,9 @@ AudioBufferLoader.prototype = {
                         audioBufferLoader.handleAudioURLError( 'error decoding file data ');
                         return;
                     }
-                    if(audioBufferLoader.requestType =='discovery'){
-                        audioBufferLoader.nsFile.buffer   = buffer;
-                        audioBufferLoader.nsFile.loaded   = true;
-                        NocSonicDiscoveryModel.addBufferToList(audioBufferLoader.nsFile);
-                        AppModelState.updateAudioDiscoveryPlayState((AppModelState.audioStateType()).DOWNLOAD,  audioBufferLoader.nsFile);
-                    }else{
-                        NocSonicStudioModel.addBufferToList(buffer);
-                    }
+                    audioBufferLoader.nsFile.buffer   = buffer;
+                    audioBufferLoader.nsFile.loaded   = true;
+                    AppModelState.updateAudioDiscoveryPlayState((AppModelState.audioStateType()).DOWNLOAD,  audioBufferLoader.nsFile);
                     audioBufferLoader.handleBufferLoaded();
                 },
                 function(error) {

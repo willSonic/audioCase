@@ -1,4 +1,9 @@
 {
   "name": "example",
   "app_id": ""
+    {
+      "path": "/api",
+      "proxyUrl": "https://s3-us-west-2.amazonaws.com/"
+    }
+
 }

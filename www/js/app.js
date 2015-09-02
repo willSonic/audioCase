@@ -1,4 +1,6 @@
-angular.module('mysoundboard', ['ionic', 'mysoundboard.controllers', 'mysoundboard.services'])
+angular.module('mysoundboard', ['ionic', 'mysoundboard.controllers', 'mysoundboard.services',
+                                'services.AudioContext-Factory', 'services.AudioLoader-Factory',
+                                'services.AppModelState-Service', 'services.AudioControls-Service'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {

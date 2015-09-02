@@ -1,10 +1,11 @@
-angular.module('mysoundboard.controllers', ['services.AudioRecord-Factory'])
+angular.module('mysoundboard.controllers', [])
 
-.controller('HomeCtrl', function($scope, Sounds, $ionicPlatform, AudioLoaderFactory) {
+.controller('HomeCtrl', function($scope, Sounds, $ionicPlatform, AudioLoaderFactory, AppModelState, AudioControlsFactory) {
 
-  var isLoading = false;
-  var isSuccessful = false;
-  var fileURL = "";
+  var isLoading         = false;
+  var isSuccessful      = false;
+  var fileURL           = "";
+  var audioStateChange  = null;
   var Beat = {};
   Beat.id = "539b888ee4b005c39d6c630c";
   Beat.beat_blklst_points = 0;
@@ -24,18 +25,46 @@ angular.module('mysoundboard.controllers', ['services.AudioRecord-Factory'])
   Beat.discarded  = false;
   Beat.user_id    = "5367c72f952ddbb702ef8c78";
 
-  AudioLoaderFactory.bufferedAudioURLS(Beat.beat_cdn_url, Beat).then(
+  //non-model-state-attributes
+  Beat.progress   = 0;
+  Beat.buffer     = null;
+  Beat.loaded     = null;
+
+  AudioLoaderFactory.bufferedAudioURLS(Beat.beat_cdn_url, Beat, 'studio').then(
         function handleResolve(success) {
             // Loading was successful.
             isLoading = false;
             isSuccessful = true;
+             console.log("[HomeCtrl] AudioLoaderFactory success ");
         },
         function handleReject(error) {
             // Loading failed on at least one image.
             isLoading = false;
             isSuccessful = false;
+             console.log("[HomeCtrl] AudioLoaderFactory fail error =", error);
         }
   );
+
+   audioStateChange = $scope.$on('nocAudioAction::change', function(event, eventData){
+                switch(eventData.action) {
+                    case (AppModelState.audioStateType()).PLAY:
+                        break;
+                    case (AppModelState.audioStateType()).STOP:
+                        break;
+                    case (AppModelState.audioStateType()).DOWNLOAD:
+                        AudioControlsFactory.audioControlsAction(eventData.nsFile);
+                        break;
+                    case (AppModelState.audioStateType()).PROGRESS:
+                          console.log("[HomeCtrl]  Beat DownLoad Progress ="+ Math.round(eventData.nsFile.progress));
+                         break;
+                    case (AppModelState.audioStateType()).NEXT:
+                        break;
+                    case (AppModelState.audioStateType()).LOOP:
+                        break;
+                    case (AppModelState.audioStateType()).MUTE:
+                        break;
+                }
+            });
 
 	var getSounds = function() {
 		console.log('getSounds called');
@@ -78,6 +107,10 @@ angular.module('mysoundboard.controllers', ['services.AudioRecord-Factory'])
 		});
 	});
 
+
+   $scope.$on("$destroy", function() {
+       audioStateChange();
+   });
 })
 .controller('RecordCtrl', function($scope, Sounds, $state, $ionicHistory) {
 
@@ -96,7 +129,6 @@ angular.module('mysoundboard.controllers', ['services.AudioRecord-Factory'])
 			navigator.notification.alert("Record a sound first.", null, "Error");
 			return;
 		}
-
 		/*
 		begin the copy to persist location
 
@@ -171,4 +203,5 @@ angular.module('mysoundboard.controllers', ['services.AudioRecord-Factory'])
 		});
 		media.play();
 	}
+
 });
