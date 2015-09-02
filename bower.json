@@ -3,6 +3,6 @@
   "private": "true",
   "devDependencies": {
     "ionic": "driftyco/ionic-bower#1.1.0",
-    "ngCordova": "ngCordova"
+    "ngCordova": "git://github.com/driftyco/ng-cordova.git"
   }
 }

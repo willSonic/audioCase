@@ -1,6 +1,41 @@
-angular.module('mysoundboard.controllers', [])
+angular.module('mysoundboard.controllers', ['services.AudioRecord-Factory'])
 
-.controller('HomeCtrl', function($scope, Sounds, $ionicPlatform) {
+.controller('HomeCtrl', function($scope, Sounds, $ionicPlatform, AudioLoaderFactory) {
+
+  var isLoading = false;
+  var isSuccessful = false;
+  var fileURL = "";
+  var Beat = {};
+  Beat.id = "539b888ee4b005c39d6c630c";
+  Beat.beat_blklst_points = 0;
+  Beat.beat_cdn_url = "https://s3-us-west-2.amazonaws.com/nocsonic.s3/nocsonic.audio/community/rap/funkybeat.mp3";
+  Beat.beat_format = "mp3";
+  Beat.beat_genre = "54171213e4b01927d54d3515";
+  Beat.beat_liner_notes = "gangsta funky beat flowing on the regular";
+  Beat.beat_name = "funkybeat.mp3";
+  Beat.beat_path = "nocsonic.audio/community/rap/funkybeat.mp3";
+  Beat.beat_play_points = 0;
+  Beat.beat_rank_points = 0;
+  Beat.beat_size = 551604;
+  Beat.beat_tag_list= "548741efe4b080185011734d";
+  Beat.beat_title = "funkybeat";
+  Beat.beat_type  = "audio";
+  Beat.createdAt  = 2014;
+  Beat.discarded  = false;
+  Beat.user_id    = "5367c72f952ddbb702ef8c78";
+
+  AudioLoaderFactory.bufferedAudioURLS(Beat.beat_cdn_url, Beat).then(
+        function handleResolve(success) {
+            // Loading was successful.
+            isLoading = false;
+            isSuccessful = true;
+        },
+        function handleReject(error) {
+            // Loading failed on at least one image.
+            isLoading = false;
+            isSuccessful = false;
+        }
+  );
 
 	var getSounds = function() {
 		console.log('getSounds called');
