@@ -1,11 +1,12 @@
 angular.module('mysoundboard.controllers', [])
 
-.controller('HomeCtrl', function($scope, Sounds, $ionicPlatform, AudioLoaderFactory, AppModelState, AudioControlsFactory) {
+.controller('HomeCtrl', function($scope, Sounds, $ionicPlatform, AudioLoaderFactory, AppModelState, AudioControlsFactory, $timeout, $cordovaFileTransfer,  $cordovaFile, WebAudioContext) {
 
   var isLoading         = false;
   var isSuccessful      = false;
   var fileURL           = "";
   var audioStateChange  = null;
+  var audioContext       = WebAudioContext._audioContext;
   var Beat = {};
   Beat.id = "539b888ee4b005c39d6c630c";
   Beat.beat_blklst_points = 0;
@@ -30,7 +31,7 @@ angular.module('mysoundboard.controllers', [])
   Beat.buffer     = null;
   Beat.loaded     = null;
   console.log("[HomeCtrl]  START");
-  AudioLoaderFactory.bufferedAudioURLS(Beat.beat_cdn_url, Beat, 'studio').then(
+  /*AudioLoaderFactory.bufferedAudioURLS(Beat.beat_cdn_url, Beat, 'studio').then(
         function handleResolve(success) {
             // Loading was successful.
             isLoading = false;
@@ -43,7 +44,55 @@ angular.module('mysoundboard.controllers', [])
             isSuccessful = false;
              console.log("[HomeCtrl] AudioLoaderFactory fail error =", error);
         }
-  );
+  );*/
+
+  function readFileAsBufferedArray(fileInput){
+
+    // READ
+    $cordovaFile.readAsArrayBuffer(cordova.file.documentsDirectory, fileInput.name)
+      .then(function (success) {
+                audioContext.decodeAudioData(success,
+                                    function(buffer) {
+                                           Beat.buffer = buffer;
+                                           Beat.loaded = true;
+                                           AudioControlsFactory.audioControlsAction("playAudioClip", Beat);
+                                       },
+                                    function(error) {
+                                          console.log('decodeAudioData error' + error);
+                                    });
+      }, function (error) {
+           console.log('readAsArrayBuffer error' + error);
+        // error
+      });
+
+  }
+
+
+  $scope.downloadFile = function() {
+
+    var targetPath = cordova.file.documentsDirectory + "funkybeat.mp3";
+    var trustHosts = true;
+    var options = {};
+    console.log("[HomeCtrl] downloadFile(0 called...");
+    $cordovaFileTransfer.download(Beat.beat_cdn_url, targetPath, options, trustHosts)
+      .then(function(result) {
+        // Success!
+        readFileAsBufferedArray(result);
+      }, function(err) {
+        alert(JSON.stringify(error));
+        // Error
+      }, function (progress) {
+        $timeout(function () {
+          $scope.downloadProgress = (progress.loaded / progress.total) * 100;
+        })
+      });
+
+  }
+
+   /*var media = $cordovaMedia.newMedia(Beat.beat_cdn_url);
+     media.play();
+   });*/
+
 
    audioStateChange = $scope.$on('nocAudioAction::change', function(event, eventData){
                 switch(eventData.action) {

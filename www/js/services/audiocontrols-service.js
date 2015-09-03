@@ -189,8 +189,10 @@ angular.module('services.AudioControls-Service').factory('AudioControlsFactory',
         audioControlsAction : function(actionType,params){
             switch(actionType){
                 case actionStates.PLAY:
+
                    NocSonicStudioModel.beatBuffer = params.buffer;
-                   playBackAudio(params);
+
+                   playBackAudio(playTypes.BEAT_CLIP);
                 break;
                 case actionStates.STOP:
                     if(NocSonicStudioModel.beatPlayOn && !params)

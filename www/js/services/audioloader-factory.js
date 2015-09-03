@@ -187,18 +187,19 @@ AudioBufferLoader.prototype = {
         // Load buffer asynchronously
         var xhr = new XMLHttpRequest();
 
-        if ('withCredentials' in xhr) {
+       /* if ('withCredentials' in xhr) {
             // XHR for Chrome/Firefox/Opera/Safari.
-            console.log("[AudioLoader-factory] --- audioBufferLoader.fileURL ="+ audioBufferLoader.fileURL)
-            xhr.open('GET',audioBufferLoader.fileURL, true);
+            console.log("[AudioLoader-factory] --- audioBufferLoader.fileURL ="+ audioBufferLoader.fileURL);
+            xhr.open('GET', audioBufferLoader.fileURL, true);
         } else if (typeof XDomainRequest != 'undefined') {
             // XDomainRequest for IE.
             xhr = new XDomainRequest();
             xhr.open(method, audioBufferLoader.fileURL);
         } else {
             // CORS not supported.
-        }
+        }*/
 
+        console.log("[AudioLoader-factory] --- audioBufferLoader.fileURL ="+ audioBufferLoader.fileURL);
         xhr.open('GET',  audioBufferLoader.fileURL, true);
         xhr.responseType = 'arraybuffer';
 
