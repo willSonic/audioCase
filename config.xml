@@ -8,7 +8,9 @@
       Ionic Framework Team
     </author>
   <content src="index.html"/>
+  <access origin="https://s3-us-west-2.amazonaws.com"/>
   <access origin="*"/>
+  <allow-navigation href="*"/>
   <preference name="webviewbounce" value="false"/>
   <preference name="UIWebViewBounce" value="false"/>
   <preference name="DisallowOverscroll" value="true"/>

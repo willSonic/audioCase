@@ -29,7 +29,7 @@ angular.module('mysoundboard.controllers', [])
   Beat.progress   = 0;
   Beat.buffer     = null;
   Beat.loaded     = null;
-
+  console.log("[HomeCtrl]  START");
   AudioLoaderFactory.bufferedAudioURLS(Beat.beat_cdn_url, Beat, 'studio').then(
         function handleResolve(success) {
             // Loading was successful.
