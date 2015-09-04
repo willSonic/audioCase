@@ -46,9 +46,11 @@ angular.module('mysoundboard.controllers', [])
         }
   );*/
 
+
   function readFileAsBufferedArray(fileInput){
 
     // READ
+    console.log("HomeCntrlr------ readFileAsBufferedArray ==== fileInput =", fileInput)
     $cordovaFile.readAsArrayBuffer(cordova.file.documentsDirectory, fileInput.name)
       .then(function (success) {
                 audioContext.decodeAudioData(success,
@@ -70,22 +72,40 @@ angular.module('mysoundboard.controllers', [])
 
   $scope.downloadFile = function() {
 
-    var targetPath = cordova.file.documentsDirectory + "funkybeat.mp3";
-    var trustHosts = true;
-    var options = {};
-    console.log("[HomeCtrl] downloadFile(0 called...");
-    $cordovaFileTransfer.download(Beat.beat_cdn_url, targetPath, options, trustHosts)
-      .then(function(result) {
-        // Success!
-        readFileAsBufferedArray(result);
-      }, function(err) {
-        alert(JSON.stringify(error));
-        // Error
-      }, function (progress) {
-        $timeout(function () {
-          $scope.downloadProgress = (progress.loaded / progress.total) * 100;
-        })
-      });
+ /*
+    var audioLoader = new AudioSampleLoader();
+    audioLoader.src =  Beat.beat_cdn_url ;
+    audioLoader.ctx =  WebAudioContext._audioContext;
+    audioLoader.onload = function() {
+       Beat.buffer = audioLoader.response;
+       Beat.loaded = true;
+       AudioControlsFactory.audioControlsAction("playAudioClip", Beat);
+    };
+    audioLoader.onerror = function() {
+      console.log("Error loading Metronome Audio");
+    };
+    audioLoader.send();
+
+      */
+
+
+          var targetPath = cordova.file.dataDirectory + "funkybeat.mp3";
+          var trustHosts = true;
+          var options = {};
+          console.log("[HomeCtrl] downloadFile(0 called...");
+          $cordovaFileTransfer.download(Beat.beat_cdn_url, targetPath, options, trustHosts)
+            .then(function(result) {
+              // Success!
+              alert(JSON.stringify(result));
+              readFileAsBufferedArray(result);
+            }, function(err) {
+              alert(JSON.stringify(error));
+              // Error
+            }, function (progress) {
+              $timeout(function () {
+                $scope.downloadProgress = (progress.loaded / progress.total) * 100;
+              })
+            });
 
   }
 
@@ -235,7 +255,7 @@ angular.module('mysoundboard.controllers', [])
 	}
 
 	$scope.record = function() {
-	console.log('attempting to record');
+	  console.log('attempting to record');
 		navigator.device.capture.captureAudio(
     		captureSuccess,captureError,{duration:10});
 	}

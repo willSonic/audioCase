@@ -21,6 +21,7 @@ angular.module('services.AudioContext-Factory').factory('WebAudioContext', funct
                 this._OfflineAudioAudioContext =  getOffLineAudioContext();
                 this.isSupported = (this._audioContext !== null);
                 if (isSupported) {
+                     console.log("[AudioContext-Factory]---creatd has this_audio this._audioContext ");
                     // this assumes that every browser with an AudioContext has an Audio element, too
                     this.format = !!(new window.Audio()).canPlayType('audio/ogg') ? 'ogg' : 'mp3';
                 }else{
