@@ -10,12 +10,12 @@ angular.module('mysoundboard.controllers', [])
   var Beat = {};
   Beat.id = "539b888ee4b005c39d6c630c";
   Beat.beat_blklst_points = 0;
-  Beat.beat_cdn_url = "https://s3-us-west-2.amazonaws.com/nocsonic.s3/nocsonic.audio/community/rap/funkybeat.mp3";
+  Beat.beat_cdn_url = "https://s3-us-west-2.amazonaws.com/nocsonic.s3/nocsonic.audio/community/rap/2short.mp3";
   Beat.beat_format = "mp3";
   Beat.beat_genre = "54171213e4b01927d54d3515";
   Beat.beat_liner_notes = "gangsta funky beat flowing on the regular";
-  Beat.beat_name = "funkybeat.mp3";
-  Beat.beat_path = "nocsonic.audio/community/rap/funkybeat.mp3";
+  Beat.beat_name = "2short.mp3";
+  Beat.beat_path = "nocsonic.audio/community/rap/2short.mp3";
   Beat.beat_play_points = 0;
   Beat.beat_rank_points = 0;
   Beat.beat_size = 551604;
@@ -30,27 +30,12 @@ angular.module('mysoundboard.controllers', [])
   Beat.progress   = 0;
   Beat.buffer     = null;
   Beat.loaded     = null;
+
   console.log("[HomeCtrl]  START");
-  /*AudioLoaderFactory.bufferedAudioURLS(Beat.beat_cdn_url, Beat, 'studio').then(
-        function handleResolve(success) {
-            // Loading was successful.
-            isLoading = false;
-            isSuccessful = true;
-             console.log("[HomeCtrl] AudioLoaderFactory success ");
-        },
-        function handleReject(error) {
-            // Loading failed on at least one image.
-            isLoading = false;
-            isSuccessful = false;
-             console.log("[HomeCtrl] AudioLoaderFactory fail error =", error);
-        }
-  );*/
-
-
   function readFileAsBufferedArray(fileInput){
 
     // READ
-    console.log("HomeCntrlr------ readFileAsBufferedArray ==== fileInput =", fileInput)
+    console.log("HomeCntrlr------ readFileAsBufferedArray ==== fileInput =", fileInput);
     $cordovaFile.readAsArrayBuffer(cordova.file.documentsDirectory, fileInput.name)
       .then(function (success) {
                 audioContext.decodeAudioData(success,
@@ -69,9 +54,7 @@ angular.module('mysoundboard.controllers', [])
 
   }
 
-
   $scope.downloadFile = function() {
-
  /*
     var audioLoader = new AudioSampleLoader();
     audioLoader.src =  Beat.beat_cdn_url ;
@@ -89,14 +72,15 @@ angular.module('mysoundboard.controllers', [])
       */
 
 
-          var targetPath = cordova.file.dataDirectory + "funkybeat.mp3";
+          var targetPath = cordova.file.documentsDirectory + Beat.beat_name;
           var trustHosts = true;
           var options = {};
           console.log("[HomeCtrl] downloadFile(0 called...");
+
           $cordovaFileTransfer.download(Beat.beat_cdn_url, targetPath, options, trustHosts)
             .then(function(result) {
               // Success!
-              alert(JSON.stringify(result));
+              //alert(JSON.stringify(result));
               readFileAsBufferedArray(result);
             }, function(err) {
               alert(JSON.stringify(error));
@@ -135,46 +119,9 @@ angular.module('mysoundboard.controllers', [])
                 }
             });
 
-	var getSounds = function() {
-		console.log('getSounds called');
-		Sounds.get().then(function(sounds) {
-			console.dir(sounds);
-			$scope.sounds = sounds;
-		});
+	$scope.stopPlay = function(){
+	      AudioControlsFactory.audioControlsAction("stopAudioClip", Beat);
 	}
-
-	$scope.$on('$ionicView.enter', function(){
-		console.log('enter');
-		getSounds();
-	});
-
-	$scope.play = function(x) {
-		console.log('play', x);
-		Sounds.play(x);
-	}
-
-	$scope.delete = function(x) {
-		console.log('delete', x);
-		Sounds.get().then(function(sounds) {
-			var toDie = sounds[x];
-			window.resolveLocalFileSystemURL(toDie.file, function(fe) {
-				fe.remove(function() {
-					Sounds.delete(x).then(function() {
-						getSounds();
-					});
-				}, function(err) {
-					console.log("err cleaning up file", err);
-				});
-			});
-		});
-	}
-
-	$scope.cordova = {loaded:false};
-	$ionicPlatform.ready(function() {
-		$scope.$apply(function() {
-			$scope.cordova.loaded = true;
-		});
-	});
 
 
    $scope.$on("$destroy", function() {

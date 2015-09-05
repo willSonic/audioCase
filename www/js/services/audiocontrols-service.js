@@ -198,9 +198,6 @@ angular.module('services.AudioControls-Service').factory('AudioControlsFactory',
                     if(NocSonicStudioModel.beatPlayOn && !params)
                         params = playTypes.BEAT_CLIP;
 
-                    if(NocSonicStudioModel.nocPlayOn && !params)
-                        params = playTypes.NOC_FILE;
-
                     stopAudioPlayBack(params);
                 break;
             }

@@ -21,8 +21,14 @@
 	</div>
 		<div class="row">
 			<div class="col">
-				<button class="button button-block button-balanced icon-left ion-android-microphone" ng-click="downloadFile()">Record</button>
+				<button class="button button-block button-balanced" ng-click="downloadFile()">PLAY</button>
 			</div>
+			<div class="col">
+				<button class="button button-block button-balanced" ng-click="stopPlay()">STOP</button>
+			</div>
+		</div>
+
+		<div class="row">
 			<div class="col">
         <a href="#/new" class="button button-balanced button-block" ng-show="cordova.loaded">
           Record New Sound
