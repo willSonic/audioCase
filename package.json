@@ -19,12 +19,19 @@
     "cordova-plugin-console",
     "cordova-plugin-whitelist",
     "cordova-plugin-splashscreen",
+    {
+      "locator": "https://github.com/apache/cordova-plugins.git#master:keyboard",
+      "id": "cordova-labs-wkwebviewengine"
+    },
     "cordova-plugin-file",
-    "cordova-plugin-media",
-    "cordova-plugin-media-capture",
-    "com.ionic.keyboard"
+    "cordova-plugin-file-transfer",
+    "cordova-plugin-media"
   ],
   "cordovaPlatforms": [
-    "ios"
+    {
+      "platform": "ios",
+      "version": "https://github.com/apache/cordova-ios.git#master",
+      "locator": "ios@https://github.com/apache/cordova-ios.git#master"
+    }
   ]
 }

@@ -1,12 +1,16 @@
 angular.module('mysoundboard.controllers', [])
 
-.controller('HomeCtrl', function($scope, Sounds, $ionicPlatform, AudioLoaderFactory, AppModelState, AudioControlsFactory, $timeout, $cordovaFileTransfer,  $cordovaFile, WebAudioContext) {
+.controller('HomeCtrl', function($scope, $q, $ionicPlatform, $timeout, $cordovaFileTransfer,  $cordovaFile, $cordovaMedia) {
 
   var isLoading         = false;
   var isSuccessful      = false;
   var fileURL           = "";
   var audioStateChange  = null;
-  var audioContext       = WebAudioContext._audioContext;
+  var audioContext       =  (window.hasOwnProperty('AudioContext')) ? new window.AudioContext() :
+                              (window.hasOwnProperty('webkitAudioContext'))? new window.webkitAudioContext() : null;
+  var offlineCtx        = new (window.hasOwnProperty('OfflineAudioContext')) ?new  window.OfflineAudioContext(2,44100*40,44100) :
+                       (window.hasOwnProperty('webkitOfflineAudioContext'))? new window.webkitOfflineAudioContext(2,44100*40,44100): null;
+  var source             = offlineCtx.createBufferSource();
   var Beat = {};
   Beat.id = "539b888ee4b005c39d6c630c";
   Beat.beat_blklst_points = 0;
@@ -33,55 +37,165 @@ angular.module('mysoundboard.controllers', [])
 
   console.log("[HomeCtrl]  START");
   function readFileAsBufferedArray(fileInput){
+        alert(JSON.stringify(fileInput));
+         console.log("HomeCntrlr------ readFileAsBufferedArray fileInput.URL ===="+fileInput.nativeURL);
+         $cordovaFile.readAsArrayBuffer(cordova.file.documentsDirectory, fileInput.name)
+            .then(function (success) {
+               audioContext.decodeAudioData(success,
+                      function(buffer) {
+                             Beat.buffer = buffer;
+                            //AudioControlsFactory.audioControlsAction("playAudioClip", Beat);
+                      },
+                      function(error) {
 
-    // READ
-    console.log("HomeCntrlr------ readFileAsBufferedArray ==== fileInput =", fileInput);
-    $cordovaFile.readAsArrayBuffer(cordova.file.documentsDirectory, fileInput.name)
-      .then(function (success) {
-                audioContext.decodeAudioData(success,
-                                    function(buffer) {
-                                           Beat.buffer = buffer;
-                                           Beat.loaded = true;
-                                           AudioControlsFactory.audioControlsAction("playAudioClip", Beat);
-                                       },
-                                    function(error) {
-                                          console.log('decodeAudioData error' + error);
-                                    });
-      }, function (error) {
-           console.log('readAsArrayBuffer error' + error);
-        // error
-      });
+                console.log('Rendering decodeAudioData: ' + error);
+                      });
+
+
+            }).catch(function(err) {
+                console.log('Rendering failed: ' + err);
+                // Note: The promise should reject when startRendering is called a second time on an OfflineAudioContext
+            });
 
   }
 
+    function getData(file, fileEntry) {
+      var request = new XMLHttpRequest();
+      request.open('GET', "https://s3-us-west-2.amazonaws.com/nocsonic.s3/nocsonic.audio/community/rap/2short.mp3", true);
+      request.responseType = 'arraybuffer';
+      request.onload = function() {
+        // $cordovaFile.readAsArrayBuffer('cdvfile://localhost/library-nosync/', Beat.beat_name)
+        // .then(function (success) {
+        var audioData = request.response;
+        audioContext.decodeAudioData(request.response, function (buffer) {
+            Beat.buffer = buffer;
+            Beat.loaded = true;
+            AudioControlsFactory.audioControlsAction("playAudioClip", Beat);
+          },
+          function (error) {
+            console.log('decodeAudioData error' + error);
+          });
+      }
+               /* source.buffer = Beat.buffer;
+          source.connect(offlineCtx.destination);
+          var iOSPlayOptions = {
+            numberOfLoops: 2,
+            playAudioWhenScreenIsLocked: false
+          }
+          source.start(iOSPlayOptions);
+          source.loop = true;
+          offlineCtx.oncomplete= function(e) {
+            console.log('Rendering completed successfully');
+            var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            var song = audioCtx.createBufferSource();
+            song.buffer = e.renderedBuffer;
+            song.connect(audioCtx.destination);
+              $timeout(function () {
+                song.start();
+              }, 100);
+          };
+
+          offlineCtx.startRendering()
+        });
+      }/*, function (error) {
+           console.log('readAsArrayBuffer error' + error);
+        // error
+      })*/
+      request.send();
+  }
+
+  function getMediaURL(s) {
+      if(device.platform.toLowerCase() === "android"){
+        return "/android_asset/www/" + s;
+      }else if(device.platform.indexOf("iOS") >= 0) {
+				mediaUrl = "../Library/NoCloud/" + mediaUrl.split("/").pop();
+      }
+      return s;
+  }
+  var getSounds = function() {
+      var deferred = $q.defer();
+      var sounds = [];
+
+      if(localStorage.mysoundboard) {
+        sounds = JSON.parse(localStorage.mysoundboard);
+      }
+      deferred.resolve(sounds);
+
+      return deferred.promise;
+    }
+
   $scope.downloadFile = function() {
- /*
-    var audioLoader = new AudioSampleLoader();
-    audioLoader.src =  Beat.beat_cdn_url ;
-    audioLoader.ctx =  WebAudioContext._audioContext;
-    audioLoader.onload = function() {
-       Beat.buffer = audioLoader.response;
-       Beat.loaded = true;
-       AudioControlsFactory.audioControlsAction("playAudioClip", Beat);
-    };
-    audioLoader.onerror = function() {
-      console.log("Error loading Metronome Audio");
-    };
-    audioLoader.send();
 
-      */
+    var targetPath = cordova.file.dataDirectory + Beat.beat_name;
+    var trustHosts = true;
+    var options = {};
+    var loc = cordova.file.dataDirectory;
+    console.log("[HomeCtrl] downloadFile(0 called...");
+    window.resolveLocalFileSystemURL(targetPath, appStart, downloadAsset);
+  }
 
+  function appStart(fileEntry){
+    fileEntry.file(function(file) {
+          console.log("[HomeCtrl] downloadFile(0 called...targetPath =" + file.localURL);
+          console.log("[HomeCtrl] downloadFile(0 called...nativeURL =" + file.name);
+          getData(file, fileEntry);
+         /* var media =$cordovaMedia.newMedia(file.localURL)
+          var iOSPlayOptions = {
+            numberOfLoops: 2,
+            playAudioWhenScreenIsLocked: false
+          }
+          media.play(iOSPlayOptions); // iOS only!*/
+	    });
+  }
 
-          var targetPath = cordova.file.documentsDirectory + Beat.beat_name;
-          var trustHosts = true;
-          var options = {};
-          console.log("[HomeCtrl] downloadFile(0 called...");
-
+  function downloadAsset(){
+    var targetPath = cordova.file.documentsDirectory + Beat.beat_name;
+    var trustHosts = true;
+    var options = {};
+    var loc = cordova.file.dataDirectory;
+    console.log("[HomeCtrl] downloadFile(0 called...");
           $cordovaFileTransfer.download(Beat.beat_cdn_url, targetPath, options, trustHosts)
             .then(function(result) {
               // Success!
-              //alert(JSON.stringify(result));
-              readFileAsBufferedArray(result);
+              /*
+              but now we have an issue with file name. so let's use the existing extension,
+              but a unique filename based on seconds since epoch
+              */
+              var extension = Beat.beat_name.split(".").pop();
+              var filepart = Date.now();
+              var filename = filepart + "." + extension;
+              console.log("new filename is "+filename);
+                window.resolveLocalFileSystemURL(loc, function(d) {
+                  window.resolveLocalFileSystemURL( Beat.beat_name, function(fe) {
+                       alert(JSON.stringify(fe));
+                      fe.copyTo(d, filename, function(e) {
+                            console.log('success inc opy');
+                            console.dir(e);
+                            alert(JSON.stringify(e));
+                            console.log("[HomeCtrl] downloadFile(0 called...targetPath =" + targetPath);
+                            console.log("[HomeCtrl] downloadFile(0 called..Beat.beat_name =" + Beat.beat_name);
+                            var media = new Media().newMedia(e.localPath);
+                            var iOSPlayOptions = {
+                              numberOfLoops: 2,
+                              playAudioWhenScreenIsLocked: false
+                            }
+
+                           media.play(iOSPlayOptions); // iOS only!
+                              // success
+                              //readFileAsBufferedArray(result);
+
+                      }, function(e) {
+                          console.log('error in coipy');
+                          console.dir(e);
+                      });
+                  }, function(e) {
+                    console.log("error in inner bullcrap");
+                    console.dir(e);
+                  });
+                }, function(e) {
+                  console.log('error in fs');console.dir(e);
+                });
+
             }, function(err) {
               alert(JSON.stringify(error));
               // Error
@@ -98,126 +212,13 @@ angular.module('mysoundboard.controllers', [])
    });*/
 
 
-   audioStateChange = $scope.$on('nocAudioAction::change', function(event, eventData){
-                switch(eventData.action) {
-                    case (AppModelState.audioStateType()).PLAY:
-                        break;
-                    case (AppModelState.audioStateType()).STOP:
-                        break;
-                    case (AppModelState.audioStateType()).DOWNLOAD:
-                        AudioControlsFactory.audioControlsAction(eventData.nsFile);
-                        break;
-                    case (AppModelState.audioStateType()).PROGRESS:
-                          console.log("[HomeCtrl]  Beat DownLoad Progress ="+ Math.round(eventData.nsFile.progress));
-                         break;
-                    case (AppModelState.audioStateType()).NEXT:
-                        break;
-                    case (AppModelState.audioStateType()).LOOP:
-                        break;
-                    case (AppModelState.audioStateType()).MUTE:
-                        break;
-                }
-            });
-
 	$scope.stopPlay = function(){
-	      AudioControlsFactory.audioControlsAction("stopAudioClip", Beat);
+	     // AudioControlsFactory.audioControlsAction("stopAudioClip", Beat);
 	}
 
-
-   $scope.$on("$destroy", function() {
-       audioStateChange();
-   });
 })
 .controller('RecordCtrl', function($scope, Sounds, $state, $ionicHistory) {
 
-	$scope.sound = {name:""};
-
-	$scope.saveSound = function() {
-		console.log('trying to save '+$scope.sound.name);
-
-		//Simple error checking
-		if($scope.sound.name === "") {
-			navigator.notification.alert("Name this sound first.", null, "Error");
-			return;
-		}
-
-		if(!$scope.sound.file) {
-			navigator.notification.alert("Record a sound first.", null, "Error");
-			return;
-		}
-		/*
-		begin the copy to persist location
-
-		first, this path below is persistent on both ios and and
-		*/
-		var loc = cordova.file.dataDirectory;
-		/*
-		but now we have an issue with file name. so let's use the existing extension,
-		but a unique filename based on seconds since epoch
-		*/
-		var extension = $scope.sound.file.split(".").pop();
-		var filepart = Date.now();
-		var filename = filepart + "." + extension;
-		console.log("new filename is "+filename);
-
-		window.resolveLocalFileSystemURL(loc, function(d) {
-			window.resolveLocalFileSystemURL($scope.sound.file, function(fe) {
-				fe.copyTo(d, filename, function(e) {
-					console.log('success inc opy');
-					console.dir(e);
-					$scope.sound.file = e.nativeURL;
-					$scope.sound.path = e.fullPath;
-
-					Sounds.save($scope.sound).then(function() {
-						$ionicHistory.nextViewOptions({
-						    disableBack: true
-						});
-						$state.go("home");
-					});
-
-				}, function(e) {
-					console.log('error in coipy');console.dir(e);
-				});
-			}, function(e) {
-				console.log("error in inner bullcrap");
-				console.dir(e);
-			});
-
-
-		}, function(e) {
-			console.log('error in fs');console.dir(e);
-		});
-
-
-	}
-
-	var captureError = function(e) {
-		console.log('captureError' ,e);
-	}
-
-	var captureSuccess = function(e) {
-		console.log('captureSuccess');console.dir(e);
-		$scope.sound.file = e[0].localURL;
-		$scope.sound.filePath = e[0].fullPath;
-	}
-
-	$scope.record = function() {
-	  console.log('attempting to record');
-		navigator.device.capture.captureAudio(
-    		captureSuccess,captureError,{duration:10});
-	}
-
-	$scope.play = function() {
-		if(!$scope.sound.file) {
-			navigator.notification.alert("Record a sound first.", null, "Error");
-			return;
-		}
-		var media = new Media($scope.sound.file, function(e) {
-			media.release();
-		}, function(err) {
-			console.log("media err", err);
-		});
-		media.play();
-	}
 
 });
+

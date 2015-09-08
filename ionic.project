@@ -1,8 +1,4 @@
 {
-  "name": "audioCase",
-  "app_id": "",
-  "proxies": [{
-      "path": "/nocsonic.s3/nocsonic.audio/community",
-      "proxyUrl": "https://s3-us-west-2.amazonaws.com/nocsonic.s3"
-    }]
+  "name": "WebAudioT",
+  "app_id": ""
 }
